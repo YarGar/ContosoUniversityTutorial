@@ -34,6 +34,33 @@
             @Html.DisplayFor(model => model.EnrollmentDate)
         </dd>
 
+        <dt>
+            @Html.DisplayNameFor(model => model.Enrollments)
+        </dt>
+
+        <dd>
+            <table class="table">
+                <tr>
+                    <th>Course Title</th>
+                    <th>Grade</th>
+                </tr>
+                @*This code loops through the entities in the Enrollments navigation property.
+                For each Enrollment entity in the property, it creates a new row and displays the
+                course title and the grade.The course title is retrieved from the Course entity that's
+                stored in the Course navigation property of the Enrollments entity*@
+                @foreach (var item in Model.Enrollments)
+                {
+                    <tr>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.Course.Title)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.Grade)
+                        </td>
+                    </tr>
+                }
+            </table>
+        </dd>
     </dl>
 </div>
 <p>

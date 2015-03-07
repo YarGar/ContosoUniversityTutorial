@@ -17,7 +17,7 @@ namespace ContosoUniversity.Models
         public int CourseID { get; set; }
         //Foriegn key
         public int StudentID { get; set; }
-        //"?" indicates the grad property is nullable
+        //"?" indicates the grade property is nullable
         public Grade? Grade { get; set; }
 
         //Navigation properties:
