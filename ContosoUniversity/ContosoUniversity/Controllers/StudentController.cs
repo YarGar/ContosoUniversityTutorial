@@ -44,9 +44,6 @@ namespace ContosoUniversity.Controllers
             return View();
         }
 
-        // POST: Students/Create
-        // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
-        // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Create([Bind(Include = "LastName,FirstMidName,EnrollmentDate")] Student student)
@@ -83,20 +80,52 @@ namespace ContosoUniversity.Controllers
             return View(student);
         }
 
-        // POST: Students/Edit/5
-        // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
-        // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
+        /* The commented out code of the following edit method is no longer recommended because the Bind 
+         * attribute clears out any pre-existing data in fields not listed in the Include parameter. 
+        * The new code reads the existing entity and calls TryUpdateModel to update fields from user 
+        * input in the posted form data. It then sets a flag on the entity indicating it has been changed.
+        * When the SaveChanges method is called, the Modified flag causes the Entity Framework to create SQL 
+        * statements to update the database row. Concurrency conflicts are ignored, and all columns of the 
+        * database row are updated, including those that the user didn't change. 
+        * As a best practice to prevent overposting, the fields that you want to be updateable by the Edit
+        * page are whitelisted in the TryUpdateModel parameters. If fields are added to the data model in the
+        * future, they're automatically protected until they are explicitly added here.
+        */
+        [HttpPost, ActionName("Edit")]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit([Bind(Include = "ID,LastName,FirstMidName,EnrollmentDate")] Student student)
+        public ActionResult EditPost(int? id)/*Edit([Bind(Include = "ID,LastName,FirstMidName,EnrollmentDate")] Student student)*/
         {
-            if (ModelState.IsValid)
+            if (id == null)
             {
-                db.Entry(student).State = EntityState.Modified;
-                db.SaveChanges();
-                return RedirectToAction("Index");
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            return View(student);
+            var studentToUpdate = db.Students.Find(id);
+            if (TryUpdateModel(studentToUpdate, "",
+               new string[] { "LastName", "FirstMidName", "EnrollmentDate" }))
+            {
+                try
+                {
+                    db.Entry(studentToUpdate).State = EntityState.Modified;
+                    db.SaveChanges();
+                    
+                    //Wanted to redirect to the details page of modified student instead of index. 
+                    //Learned I needed to built the solution before it would redirect properly.
+                    return RedirectToAction("Details", studentToUpdate);
+                }
+                catch (DataException /* dex */)
+                {
+                    //Log the error (uncomment dex variable name and add a line here to write a log.
+                    ModelState.AddModelError("", "Unable to save changes. Try again, and if the problem persists, see your system administrator.");
+                }
+            }
+            return View(studentToUpdate);
+            //if (ModelState.IsValid)
+            //{
+            //    db.Entry(student).State = EntityState.Modified;
+            //    db.SaveChanges();
+            //    return RedirectToAction("Index");
+            //}
+            //return View(student);
         }
 
         // GET: Students/Delete/5
