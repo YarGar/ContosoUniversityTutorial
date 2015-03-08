@@ -108,9 +108,11 @@ namespace ContosoUniversity.Controllers
                     db.Entry(studentToUpdate).State = EntityState.Modified;
                     db.SaveChanges();
                     
-                    //Wanted to redirect to the details page of modified student instead of index. 
-                    //Learned I needed to built the solution before it would redirect properly.
-                    return RedirectToAction("Details", studentToUpdate);
+                    /*Wanted to redirect to the details page of modified student instead of index. 
+                    * Learned I needed to built the solution before it would redirect properly.
+                    * Im not sure why I need the "new" keyward but it seems to be common practice
+                    */
+                    return RedirectToAction("Details", new { id = id });
                 }
                 catch (DataException /* dex */)
                 {
@@ -128,12 +130,21 @@ namespace ContosoUniversity.Controllers
             //return View(student);
         }
 
-        // GET: Students/Delete/5
-        public ActionResult Delete(int? id)
+        /* A try-catch block was added the HttpPost Delete method to handle any errors that might 
+         * occur when the database is updated. If an error occurs, the HttpPost Delete method calls
+         * the HttpGet Delete method, passing it a parameter that indicates that an error has occurred.
+         * The HttpGet Delete method then redisplays the confirmation page along with the error message,
+         * giving the user an opportunity to cancel or try again.
+         */
+        public ActionResult Delete(int? id, bool? saveChangesError=false)
         {
             if (id == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            }
+            if (saveChangesError.GetValueOrDefault())
+            {
+                ViewBag.ErrorMessage = "Delete failed. Try again and if the problem persists, see your System Administrator.";
             }
             Student student = db.Students.Find(id);
             if (student == null)
@@ -143,14 +154,21 @@ namespace ContosoUniversity.Controllers
             return View(student);
         }
 
-        // POST: Students/Delete/5
-        [HttpPost, ActionName("Delete")]
+        [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult DeleteConfirmed(int id)
+        public ActionResult Delete(int id)
         {
-            Student student = db.Students.Find(id);
-            db.Students.Remove(student);
-            db.SaveChanges();
+            try
+            {
+                Student student = db.Students.Find(id);
+                db.Students.Remove(student);
+                db.SaveChanges();
+            }
+            catch(DataException /*dex*/)
+            {
+                //Log the error (uncomment dex variable name and add a line here to write a log.
+                return RedirectToAction("Delete", new { id = id, saveChangesError = true });
+            }
             return RedirectToAction("Index");
         }
 
