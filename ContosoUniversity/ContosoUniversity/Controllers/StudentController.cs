@@ -16,11 +16,37 @@ namespace ContosoUniversity.Controllers
         // Instantiates a db context object
         private SchoolContext db = new SchoolContext();
 
-        // Gets a list of students from the Students entity set by reading 
-        // the Students property of the database context instance
-        public ActionResult Index()
+        /* The Index method receives a sortOrder parameter from the query string in the URL.
+         * The query string value is provided by ASP.NET MVC as a parameter to the action method.
+         * The parameter will be a string that's either "Name" or "Date", optionally followed by
+         * an underscore and the string "desc" to specify descending order. The default sort
+         * order is ascending.
+         */
+        public ActionResult Index(string sortOrder)
         {
-            return View(db.Students.ToList());
+            /* The two ViewBag variables are used so that the view can configure the column
+            *  heading hyperlinks with the appropriate query string values
+            */ 
+           ViewBag.NameSortParm = String.IsNullOrEmpty(sortOrder) ? "name_desc" : "";
+           ViewBag.DateSortParm = sortOrder == "Date" ? "date_desc" : "Date";
+           var students = from s in db.Students
+                          select s;
+           switch (sortOrder)
+           {
+               case "name_desc":
+                   students = students.OrderByDescending(s => s.LastName);
+                   break;
+               case "Date":
+                   students = students.OrderBy(s => s.EnrollmentDate);
+                   break;
+               case "date_desc":
+                   students = students.OrderByDescending(s => s.EnrollmentDate);
+                   break;
+               default:
+                   students = students.OrderBy(s => s.LastName);
+                   break;
+           }
+           return View(students.ToList());
         }
 
         // GET: Students/Details/5
@@ -83,7 +109,7 @@ namespace ContosoUniversity.Controllers
         /* The commented out code of the following edit method is no longer recommended because the Bind 
          * attribute clears out any pre-existing data in fields not listed in the Include parameter. 
         * The new code reads the existing entity and calls TryUpdateModel to update fields from user 
-        * input in the posted form data. It then sets a flag on the entity indicating it has been changed.
+        * input in the posted form data. The Entity Framework's automatic change tracking sets the Modified flag on the entity.
         * When the SaveChanges method is called, the Modified flag causes the Entity Framework to create SQL 
         * statements to update the database row. Concurrency conflicts are ignored, and all columns of the 
         * database row are updated, including those that the user didn't change. 
@@ -105,9 +131,7 @@ namespace ContosoUniversity.Controllers
             {
                 try
                 {
-                    db.Entry(studentToUpdate).State = EntityState.Modified;
                     db.SaveChanges();
-                    
                     /*Wanted to redirect to the details page of modified student instead of index. 
                     * Learned I needed to built the solution before it would redirect properly.
                     * Im not sure why I need the "new" keyward but it seems to be common practice
