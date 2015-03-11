@@ -17,10 +17,10 @@ namespace ContosoUniversity.Controllers
         private SchoolContext db = new SchoolContext();
 
         /* The Index method receives a sortOrder parameter from the query string in the URL.
-         * The query string value is provided by ASP.NET MVC as a parameter to the action method.
          * The parameter will be a string that's either "Name" or "Date", optionally followed by
          * an underscore and the string "desc" to specify descending order. The default sort
          * order is ascending.
+         * See Student Index.cshtml for heading hyperlinks to this code. 
          */
         public ActionResult Index(string sortOrder)
         {
